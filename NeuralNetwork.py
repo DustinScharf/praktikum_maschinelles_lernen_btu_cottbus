@@ -46,16 +46,29 @@ class NeuralNetwork:
 
         alpha = 0.001
 
+        def err(d, z):
+            s = len(d)  # s ist länge der trainingsdaten
+            return 1 / (2 * s) * np.sum(np.power(np.subtract(d, z), 2))
+
         for k, data in enumerate(train_data):
             result = self.predict(data)
 
-            derivation = (result - train_labels) * theta_yet[2] * data * \
-                         ((theta_yet[0] * data + theta_yet[1]) * (1 - (theta_yet[0] * data + theta_yet[1])))
-            theta_new[0] = theta_yet[0] - alpha * derivation + beta * delta_theta_old[0]
+            def theta_update(index):
+                return theta_yet[index] - alpha * derivation + beta * delta_theta_old[index]
 
-            # todo update theta_new[1] and theta_new[2]
+            sigmoid_derivation = ((theta_yet[0] * data + theta_yet[1]) *
+                                  (np.ones_like(theta_yet) - (theta_yet[0] * data + theta_yet[1])))
 
-            error_new = self.E(train_labels, result)
+            derivation = (result - train_labels) * theta_yet[2] * data * sigmoid_derivation
+            theta_new[0] = theta_update(0)
+
+            derivation = (result - train_labels) * theta_yet[2] * sigmoid_derivation
+            theta_new[1] = theta_update(1)
+
+            derivation = (result - train_labels) * sigmoid_derivation
+            theta_new[2] = theta_update(2)
+
+            error_new = err(train_labels, result)
 
             # todo update weights according to theta_new (or is it already referenced?)
 
@@ -66,7 +79,3 @@ class NeuralNetwork:
             theta_yet = theta_new
 
             error_yet = error_new
-
-        def E(d, z):
-            s = len(d)  # s ist länge der trainingsdaten
-            return 1 / (2 * s) * np.sum(np.power(np.subtract(d, z), 2))
