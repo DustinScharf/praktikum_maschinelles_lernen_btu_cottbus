@@ -37,44 +37,45 @@ class NeuralNetwork:
 
         beta = 0.9
 
-        theta_new = []
+        theta_new = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         theta_yet = self.weights_input_to_hidden, self.bias_hidden, self.weights_hidden_to_output
         theta_old = 0, 0, 0
-        delta_theta_old = 0, 0, 0
+        delta_theta_old = [0, 0, 0], [0, 0, 0], [0, 0, 0]
 
         error_yet = np.inf  # todo maybe error
 
         alpha = 0.001
 
         def err(d, z):
-            s = len(d)  # s ist länge der trainingsdaten
+            # s = len(d)  # s ist länge der trainingsdaten
+            s = 1
             return 1 / (2 * s) * np.sum(np.power(np.subtract(d, z), 2))
 
         for k, data in enumerate(train_data):
             result = self.predict(data)
 
             def theta_update(index):
-                return theta_yet[index] - alpha * derivation + beta * delta_theta_old[index]
+                return theta_yet[index] - alpha * derivation + np.multiply(beta, delta_theta_old[index])
 
             sigmoid_derivation = ((theta_yet[0] * data + theta_yet[1]) *
-                                  (np.ones_like(theta_yet) - (theta_yet[0] * data + theta_yet[1])))
+                                  (1 - (theta_yet[0] * data + theta_yet[1])))
 
-            derivation = (result - train_labels) * theta_yet[2] * data * sigmoid_derivation
+            derivation = (result - train_labels[k]) * theta_yet[2] * data * sigmoid_derivation
             theta_new[0] = theta_update(0)
 
-            derivation = (result - train_labels) * theta_yet[2] * sigmoid_derivation
+            derivation = (result - train_labels[k]) * theta_yet[2] * sigmoid_derivation
             theta_new[1] = theta_update(1)
 
-            derivation = (result - train_labels) * sigmoid_derivation
+            derivation = (result - train_labels[k]) * sigmoid_derivation
             theta_new[2] = theta_update(2)
 
-            error_new = err(train_labels, result)
+            error_new = err(train_labels[k], result)
 
             # todo update weights according to theta_new (or is it already referenced?)
 
             alpha = alpha if np.less(error_new, error_yet) else alpha / 2
 
-            delta_theta_old = -alpha * derivation + beta * delta_theta_old
+            delta_theta_old = -alpha * derivation + np.multiply(beta, delta_theta_old)
             # theta_old = theta_yet
             theta_yet = theta_new
 
